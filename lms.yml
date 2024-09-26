@@ -1,0 +1,33 @@
+# lms.yml
+
+# Basic configuration for Open edX LMS
+LMS_CFG:
+  # URL for the LMS
+  BASE_URL: "http://localhost:8000"
+
+  # Database configuration
+  DATABASES:
+    default:
+      ENGINE: "django.db.backends.mysql"
+      NAME: "edxapp"
+      USER: "edxapp"
+      PASSWORD: "your_password"
+      HOST: "db"
+      PORT: "3306"
+
+  # Caching configuration
+  CACHES:
+    default:
+      BACKEND: "django.core.cache.backends.memcached.MemcachedCache"
+      LOCATION: "memcached:11211"
+
+  # Email configuration
+  EMAIL:
+    BACKEND: "django.core.mail.backends.smtp.EmailBackend"
+    HOST: "smtp.example.com"
+    PORT: 587
+    HOST_USER: "your_email@example.com"
+    HOST_PASSWORD: "your_email_password"
+    USE_TLS: true
+
+  # Other settings...

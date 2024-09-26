@@ -11,7 +11,7 @@ services:
       - SERVICE_VARIANT=lms
       - EDXAPP_MYSQL_PASSWORD=your_password
       - EDXAPP_MONGO_PASSWORD=your_mongo_password
-      # - LMS_CFG=/edx/app/edxapp/edx-platform/lms/envs/production.py
+      - LMS_CFG=/edx/app/edxapp/edx-platform/lms.yml
       - DJANGO_SETTINGS_MODULE=lms.envs.production
       - STARTUP_MODULE=lms.startup
       - PYTHONPATH=/edx/app/edxapp/edx-platform:/edx/app/edxapp/venvs/edxapp/lib/python3.8/site-packages
@@ -36,7 +36,7 @@ services:
       - SERVICE_VARIANT=cms
       - EDXAPP_MYSQL_PASSWORD=your_password
       - EDXAPP_MONGO_PASSWORD=your_mongo_password
-      # - STUDIO_CFG=/edx/app/edxapp/edx-platform/cms/envs/production.py
+      - CMS_CFG=/edx/app/edxapp/edx-platform/cms.yml
       - DJANGO_SETTINGS_MODULE=cms.envs.production
       - STARTUP_MODULE=cms.startup
       - PYTHONPATH=/edx/app/edxapp/edx-platform:/edx/app/edxapp/venvs/edxapp/lib/python3.8/site-packages

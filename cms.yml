@@ -1,0 +1,27 @@
+# studio.yml
+
+# Basic configuration for Open edX Studio
+STUDIO_CFG:
+  # URL for the studio
+  BASE_URL: "http://localhost:8001"
+
+  # Database configuration
+  DATABASES:
+    default:
+      ENGINE: "django.db.backends.mysql"
+      NAME: "edxapp"
+      USER: "edxapp"
+      PASSWORD: "your_password"
+      HOST: "db"
+      PORT: "3306"
+
+  # Email configuration
+  EMAIL:
+    BACKEND: "django.core.mail.backends.smtp.EmailBackend"
+    HOST: "smtp.example.com"
+    PORT: 587
+    HOST_USER: "your_email@example.com"
+    HOST_PASSWORD: "your_email_password"
+    USE_TLS: true
+
+  # Other settings...
