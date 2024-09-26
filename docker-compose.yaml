@@ -1,0 +1,73 @@
+version: "3.7"
+services:
+  lms:
+    image: open-edx-lms
+    container_name: lms
+    build:
+      context: .
+      dockerfile: Dockerfile.lms
+    environment:
+      # - DJANGO_SETTINGS_MODULE=lms.envs.devstack_docker
+      - SERVICE_VARIANT=lms
+      - EDXAPP_MYSQL_PASSWORD=your_password
+      - EDXAPP_MONGO_PASSWORD=your_mongo_password
+      # - LMS_CFG=/edx/app/edxapp/edx-platform/lms/envs/production.py
+      - DJANGO_SETTINGS_MODULE=lms.envs.production
+      - STARTUP_MODULE=lms.startup
+      - PYTHONPATH=/edx/app/edxapp/edx-platform:/edx/app/edxapp/venvs/edxapp/lib/python3.8/site-packages
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql
+      - mongodb
+      - redis
+    #volumes:
+    #  - ./edx-platform:/edx/app/edxapp/edx-platform
+    command: ["python3", "manage.py", "lms", "runserver", "0.0.0.0:8000"]
+
+  cms:
+    image: open-edx-cms
+    container_name: cms
+    build:
+      context: .
+      dockerfile: Dockerfile.cms
+    environment:
+      # - DJANGO_SETTINGS_MODULE=cms.envs.devstack_docker
+      - SERVICE_VARIANT=cms
+      - EDXAPP_MYSQL_PASSWORD=your_password
+      - EDXAPP_MONGO_PASSWORD=your_mongo_password
+      # - STUDIO_CFG=/edx/app/edxapp/edx-platform/cms/envs/production.py
+      - DJANGO_SETTINGS_MODULE=cms.envs.production
+      - STARTUP_MODULE=cms.startup
+      - PYTHONPATH=/edx/app/edxapp/edx-platform:/edx/app/edxapp/venvs/edxapp/lib/python3.8/site-packages
+    ports:
+      - "8001:8001"
+    depends_on:
+      - mysql
+      - mongodb
+      - redis
+    #volumes:
+    #  - ./edx-platform:/edx/app/edxapp/edx-platform
+    command: ["python3", "manage.py", "cms", "runserver", "0.0.0.0:8001"]
+
+  mysql:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: edxapp
+      MYSQL_USER: edxapp
+      MYSQL_PASSWORD: your_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  mongodb:
+    image: mongo:4.0
+    volumes:
+      - mongodb_data:/data/db
+
+  redis:
+    image: redis:6.0
+
+volumes:
+  mysql_data:
+  mongodb_data:
