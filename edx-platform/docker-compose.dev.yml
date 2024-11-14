@@ -1,0 +1,105 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: edxapp
+      MYSQL_USER: edxapp
+      MYSQL_PASSWORD: password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - edx_network
+
+  mongodb:
+    image: mongo:4.4
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - edx_network
+
+  redis:
+    image: redis:6.0
+    ports:
+      - "6379:6379"
+    networks:
+      - edx_network
+
+  lms:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: ["lms"]
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./edx-platform:/edx/app/edxapp/edx-platform
+      - edx_node_modules:/edx/app/edxapp/edx-platform/node_modules
+      - edx_venv:/edx/app/edxapp/venv
+      - ./config:/edx/app/edxapp/config
+    environment:
+      - SERVICE_VARIANT=lms
+      - DJANGO_SETTINGS_MODULE=lms.envs.devstack
+      - PYTHONPATH=/edx/app/edxapp/edx-platform
+      - NODE_ENV=development
+      - COMPOSE_DEVELOPMENT=1
+    depends_on:
+      - mysql
+      - mongodb
+      - redis
+    networks:
+      - edx_network
+
+  cms:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: ["cms"]
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./edx-platform:/edx/app/edxapp/edx-platform
+      - edx_node_modules:/edx/app/edxapp/edx-platform/node_modules
+      - edx_venv:/edx/app/edxapp/venv
+      - ./config:/edx/app/edxapp/config
+    environment:
+      - SERVICE_VARIANT=cms
+      - DJANGO_SETTINGS_MODULE=cms.envs.devstack
+      - PYTHONPATH=/edx/app/edxapp/edx-platform
+      - NODE_ENV=development
+      - COMPOSE_DEVELOPMENT=1
+    depends_on:
+      - mysql
+      - mongodb
+      - redis
+    networks:
+      - edx_network
+
+  assets:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: ["watch-assets"]
+    volumes:
+      - ./edx-platform:/edx/app/edxapp/edx-platform
+      - edx_node_modules:/edx/app/edxapp/edx-platform/node_modules
+    environment:
+      - NODE_ENV=development
+    networks:
+      - edx_network
+
+volumes:
+  mysql_data:
+  mongo_data:
+  edx_node_modules:
+  edx_venv:
+
+networks:
+  edx_network:
+    driver: bridge

@@ -1,0 +1,70 @@
+# Dockerfile.dev
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHON_VERSION=3.8
+ENV NODE_VERSION=16
+ENV PYTHONUNBUFFERED=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    python${PYTHON_VERSION} \
+    python${PYTHON_VERSION}-dev \
+    python${PYTHON_VERSION}-venv \
+    python3-pip \
+    libmysqlclient-dev \
+    libxmlsec1-dev \
+    libffi-dev \
+    nodejs \
+    npm \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up Python virtual environment
+RUN python${PYTHON_VERSION} -m venv /edx/app/edxapp/venv
+ENV PATH="/edx/app/edxapp/venv/bin:${PATH}"
+
+# Install nvm and Node.js
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+ENV NVM_DIR=/root/.nvm
+RUN . "$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION}
+RUN . "$NVM_DIR/nvm.sh" && nvm use v${NODE_VERSION}
+
+# Create necessary directories
+RUN mkdir -p /edx/app/edxapp/edx-platform \
+    && mkdir -p /edx/var/edxapp/staticfiles \
+    && mkdir -p /edx/var/edxapp/mediafiles \
+    && mkdir -p /edx/var/edxapp/data
+
+# Set working directory
+WORKDIR /edx/app/edxapp/edx-platform
+
+# Create startup script for development
+RUN echo '#!/bin/bash\n\
+set -e\n\
+\n\
+# Install requirements if they have changed\n\
+pip install -r requirements/edx/development.txt\n\
+\n\
+# Install node dependencies if package.json has changed\n\
+npm install\n\
+\n\
+if [ "$1" = "lms" ]; then\n\
+    echo "Starting LMS in development mode..."\n\
+    python manage.py lms migrate\n\
+    python manage.py lms runserver 0.0.0.0:8000\n\
+elif [ "$1" = "cms" ]; then\n\
+    echo "Starting CMS in development mode..."\n\
+    python manage.py cms migrate\n\
+    python manage.py cms runserver 0.0.0.0:8001\n\
+elif [ "$1" = "watch-assets" ]; then\n\
+    echo "Starting Webpack in watch mode..."\n\
+    npm run watch\n\
+else\n\
+    exec "$@"\n\
+fi' > /usr/local/bin/docker-entrypoint-dev.sh \
+    && chmod +x /usr/local/bin/docker-entrypoint-dev.sh
+
+ENTRYPOINT ["docker-entrypoint-dev.sh"]
